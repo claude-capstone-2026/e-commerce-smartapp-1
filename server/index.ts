@@ -30,8 +30,8 @@ app.use("/api/cart", cartRouter);
 app.use("/api/orders", ordersRouter);
 
 // Serve the built frontend; SPA fallback so client-side routes survive a hard refresh.
-const clientDist = path.join(__dirname, "..", "dist", "client");
-console.log("[debug] __dirname:", __dirname, "clientDist:", clientDist, "exists:", existsSync(clientDist));
+// __dirname is dist/server at runtime (this file is compiled there); dist/client is its sibling.
+const clientDist = path.join(__dirname, "..", "client");
 if (existsSync(clientDist)) {
   app.use(express.static(clientDist));
   app.get(/^(?!\/api).*/, (_req, res) => res.sendFile(path.join(clientDist, "index.html")));
