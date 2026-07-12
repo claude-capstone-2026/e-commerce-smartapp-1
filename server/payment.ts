@@ -7,21 +7,6 @@ export interface CardDetails {
   cardCvc: string;
 }
 
-function luhnCheck(digits: string): boolean {
-  let sum = 0;
-  let double = false;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let d = Number(digits[i]);
-    if (double) {
-      d *= 2;
-      if (d > 9) d -= 9;
-    }
-    sum += d;
-    double = !double;
-  }
-  return sum % 10 === 0;
-}
-
 function cardBrand(digits: string): string {
   if (digits.startsWith("4")) return "Visa";
   if (/^5[1-5]/.test(digits)) return "Mastercard";
@@ -39,8 +24,8 @@ export function processDummyPayment(body: unknown): { brand: string; last4: stri
   }
 
   const digits = (typeof cardNumber === "string" ? cardNumber : "").replace(/\s+/g, "");
-  if (!/^\d{13,19}$/.test(digits) || !luhnCheck(digits)) {
-    throw new HttpError(400, "Enter a valid card number");
+  if (!/^\d{13,19}$/.test(digits)) {
+    throw new HttpError(400, "Card number must be 13-19 digits");
   }
 
   if (typeof cardExpiry !== "string" || !/^\d{2}\/\d{2}$/.test(cardExpiry)) {

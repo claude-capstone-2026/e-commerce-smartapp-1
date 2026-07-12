@@ -1,18 +1,3 @@
-function luhnCheck(digits: string): boolean {
-  let sum = 0;
-  let double = false;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let d = Number(digits[i]);
-    if (double) {
-      d *= 2;
-      if (d > 9) d -= 9;
-    }
-    sum += d;
-    double = !double;
-  }
-  return sum % 10 === 0;
-}
-
 export function formatCardNumber(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 19);
   return digits.replace(/(.{4})/g, "$1 ").trim();
@@ -34,7 +19,7 @@ export interface CardFormValues {
 export function validateCard(values: CardFormValues): string | null {
   const digits = values.cardNumber.replace(/\s+/g, "");
   if (values.cardName.trim().length < 2) return "Enter the name on the card";
-  if (!/^\d{13,19}$/.test(digits) || !luhnCheck(digits)) return "Enter a valid card number";
+  if (!/^\d{13,19}$/.test(digits)) return "Card number must be 13-19 digits";
   if (!/^\d{2}\/\d{2}$/.test(values.cardExpiry)) return "Enter expiry as MM/YY";
   const [monthStr, yearStr] = values.cardExpiry.split("/");
   const month = Number(monthStr);

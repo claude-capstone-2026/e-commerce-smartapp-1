@@ -32,8 +32,8 @@ export function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
-        This is a demo checkout — no real payment is processed and no card data is sent to a
-        payment network.
+        This is a demo checkout — no real payment is processed. Any 13-19 digit number works
+        (e.g. 4242 4242 4242 4242), it doesn't need to be a real card.
       </p>
       <div>
         <label className="mb-1 block text-sm text-neutral-600">Name on card</label>
