@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useOrdersStore } from "../store/ordersStore";
 
 export function MyOrdersPage() {
@@ -44,14 +45,19 @@ export function MyOrdersPage() {
             </div>
             <div className="mt-3 flex items-center justify-between">
               <span className="font-semibold text-neutral-900">${order.total.toFixed(2)}</span>
-              {order.status === "placed" && (
-                <button
-                  onClick={() => cancelOrder(order.id)}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Cancel order
-                </button>
-              )}
+              <div className="flex items-center gap-4">
+                <Link to={`/orders/${order.id}`} className="text-sm text-neutral-600 hover:underline">
+                  View receipt
+                </Link>
+                {order.status === "placed" && (
+                  <button
+                    onClick={() => cancelOrder(order.id)}
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Cancel order
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}

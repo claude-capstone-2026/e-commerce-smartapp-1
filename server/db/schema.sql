@@ -29,8 +29,18 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'placed' CHECK (status IN ('placed', 'cancelled')),
   total NUMERIC(10, 2) NOT NULL,
+  -- Dummy-payment fields: never store a full card number or CVC, only what a real
+  -- receipt would show (brand + last 4) plus a fake transaction id.
+  transaction_id TEXT NOT NULL DEFAULT '',
+  card_brand TEXT NOT NULL DEFAULT '',
+  card_last4 TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Idempotent for databases that already had an orders table before payment fields existed.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS transaction_id TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS card_brand TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS card_last4 TEXT NOT NULL DEFAULT '';
 
 -- Snapshot product_name/unit_price at order time so a later price change or product
 -- edit never retroactively alters a past order's record.

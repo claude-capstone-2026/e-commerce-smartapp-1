@@ -2,11 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCartStore } from "../store/cartStore";
 import { apiFetch, ApiError } from "../utils/api";
+import { PaymentForm } from "../components/PaymentForm";
 import type { Order } from "../types";
+import type { CardFormValues } from "../utils/card";
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export function CheckoutPage() {
   const { cart, fetchCart } = useCartStore();
   const navigate = useNavigate();
+  const [step, setStep] = useState<"review" | "payment">("review");
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,11 +27,14 @@ export function CheckoutPage() {
     }
   }, [cart.items.length, placing, navigate]);
 
-  async function handleConfirm() {
+  async function handlePay(card: CardFormValues) {
     setError(null);
     setPlacing(true);
     try {
-      const order = await apiFetch<Order>("/api/orders", { method: "POST" });
+      const [order] = await Promise.all([
+        apiFetch<Order>("/api/orders", { method: "POST", body: JSON.stringify(card) }),
+        sleep(800), // simulated payment-processing delay
+      ]);
       await fetchCart(); // cart is now empty server-side
       navigate(`/orders/${order.id}`, { replace: true });
     } catch (err) {
@@ -37,7 +47,9 @@ export function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-semibold text-neutral-900">Review &amp; Confirm</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-neutral-900">
+        {step === "review" ? "Review & Confirm" : "Payment"}
+      </h1>
       <div className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         {cart.items.map((item) => (
           <div key={item.productId} className="flex justify-between p-4 text-sm">
@@ -52,22 +64,35 @@ export function CheckoutPage() {
         <span>Total</span>
         <span>${cart.total.toFixed(2)}</span>
       </div>
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-      <div className="mt-6 flex justify-end gap-3">
-        <button
-          onClick={() => navigate("/cart")}
-          className="rounded-md border border-neutral-300 px-5 py-2.5 text-neutral-700 hover:bg-neutral-50"
-        >
-          Back to Cart
-        </button>
-        <button
-          onClick={handleConfirm}
-          disabled={placing}
-          className="rounded-md bg-neutral-900 px-5 py-2.5 text-white hover:bg-neutral-700 disabled:opacity-50"
-        >
-          {placing ? "Placing order…" : "Place Order"}
-        </button>
-      </div>
+
+      {step === "review" ? (
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={() => navigate("/cart")}
+            className="rounded-md border border-neutral-300 px-5 py-2.5 text-neutral-700 hover:bg-neutral-50"
+          >
+            Back to Cart
+          </button>
+          <button
+            onClick={() => setStep("payment")}
+            className="rounded-md bg-neutral-900 px-5 py-2.5 text-white hover:bg-neutral-700"
+          >
+            Proceed to Payment
+          </button>
+        </div>
+      ) : (
+        <div className="mt-6">
+          <PaymentForm onSubmit={handlePay} submitting={placing} submitLabel={`Pay $${cart.total.toFixed(2)}`} />
+          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          <button
+            onClick={() => setStep("review")}
+            disabled={placing}
+            className="mt-3 text-sm text-neutral-500 hover:underline disabled:opacity-50"
+          >
+            ← Back to review
+          </button>
+        </div>
+      )}
     </div>
   );
 }

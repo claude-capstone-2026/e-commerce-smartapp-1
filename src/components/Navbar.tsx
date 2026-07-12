@@ -16,7 +16,7 @@ export function Navbar() {
   const itemCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
-    <nav className="border-b border-neutral-200 bg-white">
+    <nav className="print:hidden border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link to="/" className="text-lg font-semibold tracking-tight text-neutral-900">
           Smartapp Store

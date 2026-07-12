@@ -34,6 +34,16 @@ export interface Order {
   id: string;
   status: "placed" | "cancelled";
   total: number;
+  transactionId: string;
+  cardBrand: string;
+  cardLast4: string;
   createdAt: string;
   items?: OrderItem[];
+}
+
+export interface CardDetails {
+  cardNumber: string;
+  cardName: string;
+  cardExpiry: string;
+  cardCvc: string;
 }

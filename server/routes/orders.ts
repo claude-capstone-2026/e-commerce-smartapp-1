@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { pool, withTransaction, HttpError } from "../db/pool.js";
 import { requireAuth } from "../auth.js";
+import { processDummyPayment } from "../payment.js";
 
 export const ordersRouter = Router();
 
@@ -23,6 +24,9 @@ async function loadOrders(userId: string) {
     id: o.id,
     status: o.status,
     total: o.total,
+    transactionId: o.transaction_id,
+    cardBrand: o.card_brand,
+    cardLast4: o.card_last4,
     createdAt: o.created_at,
     items: items
       .filter((i) => i.order_id === o.id)
@@ -50,6 +54,9 @@ ordersRouter.get("/:id", async (req, res) => {
     id: order.id,
     status: order.status,
     total: order.total,
+    transactionId: order.transaction_id,
+    cardBrand: order.card_brand,
+    cardLast4: order.card_last4,
     createdAt: order.created_at,
     items: items.map((i) => ({
       productId: i.product_id,
@@ -76,6 +83,10 @@ ordersRouter.post("/", async (req, res) => {
   );
   if (cartRows.length === 0) throw new HttpError(400, "Cart is empty");
 
+  // Validate the dummy card before touching stock at all — a bad card shouldn't lock rows.
+  const { brand, last4 } = processDummyPayment(req.body);
+  const transactionId = `TXN-${randomUUID().slice(0, 8).toUpperCase()}`;
+
   const orderId = randomUUID();
   const userId = req.user!.id;
 
@@ -97,10 +108,11 @@ ordersRouter.post("/", async (req, res) => {
     }
 
     let total = 0;
-    await client.query(`INSERT INTO orders (id, user_id, status, total) VALUES ($1, $2, 'placed', 0)`, [
-      orderId,
-      userId,
-    ]);
+    await client.query(
+      `INSERT INTO orders (id, user_id, status, total, transaction_id, card_brand, card_last4)
+       VALUES ($1, $2, 'placed', 0, $3, $4, $5)`,
+      [orderId, userId, transactionId, brand, last4],
+    );
 
     for (const item of cartRows) {
       await client.query("UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2", [
@@ -119,7 +131,15 @@ ordersRouter.post("/", async (req, res) => {
     await client.query("UPDATE orders SET total = $1 WHERE id = $2", [total, orderId]);
     await client.query("DELETE FROM cart_items WHERE session_id = $1", [req.sessionId]);
 
-    return { id: orderId, status: "placed", total, createdAt: new Date().toISOString() };
+    return {
+      id: orderId,
+      status: "placed",
+      total,
+      transactionId,
+      cardBrand: brand,
+      cardLast4: last4,
+      createdAt: new Date().toISOString(),
+    };
   });
 
   res.status(201).json(order);
