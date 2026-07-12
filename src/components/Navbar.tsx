@@ -27,6 +27,11 @@ export function Navbar() {
               <Link to="/my-orders" className="text-neutral-600 hover:text-neutral-900">
                 My Orders
               </Link>
+              {(data.user as unknown as { isAdmin?: boolean }).isAdmin && (
+                <Link to="/admin/inventory" className="text-neutral-600 hover:text-neutral-900">
+                  Inventory
+                </Link>
+              )}
               <span className="text-neutral-400">{data.user.email}</span>
               <button
                 onClick={async () => {

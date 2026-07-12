@@ -1,12 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminRoute } from "./components/AdminRoute";
 import { ProductListPage } from "./pages/ProductListPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { CartPage } from "./pages/CartPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { OrderConfirmationPage } from "./pages/OrderConfirmationPage";
 import { MyOrdersPage } from "./pages/MyOrdersPage";
+import { AdminInventoryPage } from "./pages/AdminInventoryPage";
 import { SignInPage } from "./pages/SignInPage";
 import { SignUpPage } from "./pages/SignUpPage";
 
@@ -40,6 +42,14 @@ export default function App() {
             <ProtectedRoute>
               <MyOrdersPage />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <AdminRoute>
+              <AdminInventoryPage />
+            </AdminRoute>
           }
         />
         <Route path="/sign-in" element={<SignInPage />} />

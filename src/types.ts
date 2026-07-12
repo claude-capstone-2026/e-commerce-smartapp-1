@@ -47,3 +47,13 @@ export interface CardDetails {
   cardExpiry: string;
   cardCvc: string;
 }
+
+export interface StockAdjustment {
+  id: number;
+  productId: string;
+  delta: number;
+  resultingQuantity: number;
+  reason: string;
+  adminName: string;
+  createdAt: string;
+}

@@ -53,6 +53,21 @@ CREATE TABLE IF NOT EXISTS order_items (
   quantity INTEGER NOT NULL CHECK (quantity > 0)
 );
 
+-- Audit log for admin stock changes. delta is signed: positive for restocks, negative for
+-- corrections/shrinkage/damage. The running stock_quantity on products is the source of truth
+-- for "how much is available"; this table is the history of how it got there.
+CREATE TABLE IF NOT EXISTS stock_adjustments (
+  id SERIAL PRIMARY KEY,
+  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  delta INTEGER NOT NULL CHECK (delta <> 0),
+  resulting_quantity INTEGER NOT NULL,
+  reason TEXT NOT NULL DEFAULT '',
+  admin_user_id TEXT NOT NULL REFERENCES "user"(id),
+  admin_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE INDEX IF NOT EXISTS idx_cart_items_session ON cart_items (session_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders (user_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items (order_id);
+CREATE INDEX IF NOT EXISTS idx_stock_adjustments_product ON stock_adjustments (product_id);

@@ -11,6 +11,7 @@ import { sessionMiddleware } from "./session.js";
 import { productsRouter } from "./routes/products.js";
 import { cartRouter } from "./routes/cart.js";
 import { ordersRouter } from "./routes/orders.js";
+import { adminRouter } from "./routes/admin.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -28,6 +29,7 @@ app.get("/healthz", (_req, res) => res.status(200).send("ok"));
 app.use("/api/products", productsRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/orders", ordersRouter);
+app.use("/api/admin", adminRouter);
 
 // Serve the built frontend; SPA fallback so client-side routes survive a hard refresh.
 // __dirname is dist/server at runtime (this file is compiled there); dist/client is its sibling.

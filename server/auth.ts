@@ -21,12 +21,19 @@ export const auth = betterAuth({
   baseURL,
   trustedOrigins,
   emailAndPassword: { enabled: true, minPasswordLength: 8 },
+  user: {
+    additionalFields: {
+      // input: false means signup can never set this itself - only set directly in the DB
+      // (or by a future admin-only endpoint), never via a request body.
+      isAdmin: { type: "boolean", defaultValue: false, input: false },
+    },
+  },
 });
 
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: string; email: string; name: string };
+      user?: { id: string; email: string; name: string; isAdmin?: boolean };
     }
   }
 }
@@ -38,5 +45,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     return;
   }
   req.user = session.user;
+  next();
+}
+
+export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.user?.isAdmin) {
+    res.status(403).json({ error: "Admin access required" });
+    return;
+  }
   next();
 }
